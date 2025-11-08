@@ -1,0 +1,111 @@
+{
+  "questionName": "Check if Binary Tree is Symmetric (Mirror)",
+  "patternType": "binaryTree",
+
+  "sampleInput": {
+    "tree": [1, 2, 2, 3, 4, 4, 3]
+  },
+  "sampleOutput": true,
+
+  "visualLayout": {
+    "structures": [
+      {
+        "id": "tree1",
+        "type": "binaryTree",
+        "label": "Binary Tree",
+        "data": [1, 2, 2, 3, 4, 4, 3]
+      },
+      {
+        "id": "stack",
+        "type": "stack",
+        "label": "DFS Stack (Pairs to Compare)",
+        "data": []
+      },
+      {
+        "id": "isMirror",
+        "type": "variable",
+        "label": "Is Mirror?",
+        "value": true
+      },
+      {
+        "id": "pair",
+        "type": "variable",
+        "label": "Current Pair",
+        "value": null
+      }
+    ]
+  },
+
+  "steps": [
+    {
+      "step": 1,
+      "action": "visit",
+      "highlight": [{ "structure": "tree1", "index": 0 }],
+      "message": "Start from the root node (1). Push its left and right children (2, 2) into the stack for comparison.",
+      "stateChange": {
+        "stack": [[1, 2]],
+        "isMirror": true
+      }
+    },
+    {
+      "step": 2,
+      "action": "pop",
+      "highlight": [
+        { "structure": "tree1", "index": 1 },
+        { "structure": "tree1", "index": 2 }
+      ],
+      "message": "Pop the pair (2, 2). Values match, so continue checking their children in mirror order.",
+      "stateChange": {
+        "pair": "(2, 2)",
+        "stack": [[3, 6], [4, 5]]
+      }
+    },
+    {
+      "step": 3,
+      "action": "compare",
+      "highlight": [
+        { "structure": "tree1", "index": 3 },
+        { "structure": "tree1", "index": 6 }
+      ],
+      "message": "Compare (3, 3). Both values are same → continue recursion for their children.",
+      "stateChange": {
+        "pair": "(3, 3)",
+        "stack": [[4, 5]],
+        "isMirror": true
+      }
+    },
+    {
+      "step": 4,
+      "action": "compare",
+      "highlight": [
+        { "structure": "tree1", "index": 4 },
+        { "structure": "tree1", "index": 5 }
+      ],
+      "message": "Compare (4, 4). Both match → backtrack.",
+      "stateChange": {
+        "pair": "(4, 4)",
+        "stack": [],
+        "isMirror": true
+      }
+    },
+    {
+      "step": 5,
+      "action": "mark",
+      "highlight": [{ "structure": "tree1" }],
+      "message": "All pairs matched — the tree is symmetric.",
+      "stateChange": {
+        "isMirror": true
+      }
+    }
+  ],
+
+  "endMessage": "✅ The binary tree is symmetric (mirror of itself).",
+
+  "actionReference": {
+    "visit": "Start DFS traversal with root children.",
+    "compare": "Compare mirrored node pairs from left and right subtrees.",
+    "push": "Push node pairs (left, right) to the DFS stack for recursion.",
+    "pop": "Pop the top pair and compare values.",
+    "mark": "Conclude the traversal with the final symmetry result."
+  }
+}

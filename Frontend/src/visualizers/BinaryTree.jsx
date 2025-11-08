@@ -1,0 +1,843 @@
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+/**
+ * BinaryTreeVisualizer (Production-Ready - Fixed Edge Positioning)
+ * ================================================================
+ * - Proper tree visualization with corrected edge positioning
+ * - Edges start/end at node circle boundaries (not center)
+ * - Clean, professional appearance
+ * - Stack/Queue helper structures
+ * - Cyan theme (consistent with HomePage)
+ * - Scrollable content with fixed controls
+ * - Handles ALL binary tree DSA problems
+ */
+export default function BinaryTreeVisualizer({ jsonData }) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const [structures, setStructures] = useState({});
+  const [pointers, setPointers] = useState({});
+  const [variables, setVariables] = useState({});
+  const [action, setAction] = useState("");
+  const [condition, setCondition] = useState(null);
+  const [message, setMessage] = useState("");
+  const [playing, setPlaying] = useState(true);
+  const [endReached, setEndReached] = useState(false);
+
+  const steps = jsonData?.steps || [];
+  const allStructures = jsonData?.visualLayout?.structures || [];
+  const contentRef = useRef(null);
+  const timerRef = useRef(null);
+
+  // Normalize highlight format (string or object)
+  const normalizeHighlight = (highlight = []) => {
+    if (!Array.isArray(highlight)) return [];
+    return highlight
+      .map((h) => {
+        if (typeof h === "string") return h;
+        if (h && typeof h === "object" && h.structure && Number.isInteger(h.index)) {
+          return `${h.structure}:${h.index}`;
+        }
+        return null;
+      })
+      .filter(Boolean);
+  };
+
+  // Initialize structures
+  useEffect(() => {
+    const newStructures = {};
+    const newPointers = {};
+    const newVariables = {};
+
+    for (const s of allStructures) {
+      const type = (s.type || "").toLowerCase();
+
+      if (type === "binarytree" || type === "binarytreenode") {
+        newStructures[s.id] = {
+          ...s,
+          data: Array.isArray(s.data) ? [...s.data] : [],
+          visited: s.visited ?? false,
+        };
+        if (s.pointers && typeof s.pointers === "object") {
+          newPointers[s.id] = { ...s.pointers };
+        }
+      } else if (type === "stack" || type === "queue") {
+        newStructures[s.id] = {
+          ...s,
+          data: Array.isArray(s.data) ? [...s.data] : [],
+        };
+        if (s.pointers && typeof s.pointers === "object") {
+          newPointers[s.id] = { ...s.pointers };
+        }
+      } else if (type === "variable" || type === "var") {
+        newVariables[s.id] = typeof s.value !== "undefined" ? s.value : s.data ?? null;
+      } else if (type === "result") {
+        newVariables[s.id] = s.value ?? null;
+      } else if (type === "array") {
+        newStructures[s.id] = {
+          ...s,
+          data: Array.isArray(s.data) ? [...s.data] : [],
+        };
+      }
+    }
+
+    setStructures(newStructures);
+    setPointers(newPointers);
+    setVariables(newVariables);
+    setStepIndex(0);
+    setEndReached(false);
+    setPlaying(true);
+    setAction("");
+    setCondition(null);
+    setMessage("");
+  }, [jsonData]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const current = steps[stepIndex] || {};
+
+  // Auto-play
+  useEffect(() => {
+    if (!playing) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      return;
+    }
+
+    if (stepIndex >= steps.length) {
+      setPlaying(false);
+      return;
+    }
+
+    applyStep(stepIndex);
+
+    if (stepIndex < steps.length - 1) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        setStepIndex((s) => s + 1);
+      }, 1800);
+    } else {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        setEndReached(true);
+        setPlaying(false);
+      }, 1800);
+    }
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [playing, stepIndex, steps.length]);
+
+  // Apply step
+  function applyStep(idx) {
+    const step = steps[idx];
+    if (!step) return;
+
+    setAction(step.action || "");
+    setMessage(step.message || "");
+    setCondition(step.condition || null);
+
+    if (!step.stateChange) return;
+
+    const { stateChange } = step;
+
+    // Update pointers
+    if (stateChange.pointers && typeof stateChange.pointers === "object") {
+      setPointers((prev) => {
+        const updated = { ...prev };
+        for (const [structId, ptrUpdates] of Object.entries(stateChange.pointers)) {
+          updated[structId] = { ...updated[structId], ...ptrUpdates };
+        }
+        return updated;
+      });
+    }
+
+    // Update structures
+    for (const [structId, value] of Object.entries(stateChange)) {
+      if (structId === "pointers" || structId === "variables") continue;
+
+      if (Array.isArray(value) && structures[structId]) {
+        setStructures((prev) => ({
+          ...prev,
+          [structId]: { ...prev[structId], data: [...value] },
+        }));
+      }
+    }
+
+    // Update variables
+    const varUpdates = {};
+    for (const [key, value] of Object.entries(stateChange)) {
+      if (key === "pointers" || key === "variables") continue;
+      if (!Array.isArray(value) && !structures[key]) {
+        varUpdates[key] = value;
+      }
+    }
+    if (Object.keys(varUpdates).length > 0) {
+      setVariables((prev) => ({ ...prev, ...varUpdates }));
+    }
+
+    if (stateChange.variables && typeof stateChange.variables === "object") {
+      setVariables((prev) => ({ ...prev, ...stateChange.variables }));
+    }
+  }
+
+  // Controls
+  const handleNext = () => {
+    if (stepIndex < steps.length - 1) {
+      setPlaying(false);
+      setStepIndex((s) => s + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    const target = Math.max(0, stepIndex - 1);
+    setPlaying(false);
+
+    const resetStructures = {};
+    const resetPointers = {};
+    const resetVariables = {};
+
+    for (const s of allStructures) {
+      const type = (s.type || "").toLowerCase();
+      if (type === "binarytree" || type === "binarytreenode" || type === "stack" || type === "queue" || type === "array") {
+        resetStructures[s.id] = {
+          ...s,
+          data: Array.isArray(s.data) ? [...s.data] : [],
+        };
+        if (s.pointers && typeof s.pointers === "object") {
+          resetPointers[s.id] = { ...s.pointers };
+        }
+      } else if (type === "variable" || type === "var" || type === "result") {
+        resetVariables[s.id] = typeof s.value !== "undefined" ? s.value : s.data ?? null;
+      }
+    }
+
+    setStructures(resetStructures);
+    setPointers(resetPointers);
+    setVariables(resetVariables);
+
+    for (let i = 0; i < target; i++) {
+      applyStep(i);
+    }
+
+    setStepIndex(target);
+  };
+
+  const handleReset = () => {
+    setPlaying(false);
+    setStepIndex(0);
+
+    const resetStructures = {};
+    const resetPointers = {};
+    const resetVariables = {};
+
+    for (const s of allStructures) {
+      const type = (s.type || "").toLowerCase();
+      if (type === "binarytree" || type === "binarytreenode" || type === "stack" || type === "queue" || type === "array") {
+        resetStructures[s.id] = {
+          ...s,
+          data: Array.isArray(s.data) ? [...s.data] : [],
+        };
+        if (s.pointers && typeof s.pointers === "object") {
+          resetPointers[s.id] = { ...s.pointers };
+        }
+      } else if (type === "variable" || type === "var" || type === "result") {
+        resetVariables[s.id] = typeof s.value !== "undefined" ? s.value : s.data ?? null;
+      }
+    }
+
+    setStructures(resetStructures);
+    setPointers(resetPointers);
+    setVariables(resetVariables);
+    setEndReached(false);
+    setAction("");
+    setMessage("");
+    setCondition(null);
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setTimeout(() => setPlaying(true), 100);
+  };
+
+  // Filter structures
+  const trees = Object.entries(structures)
+    .filter(([_, s]) => {
+      const t = (s.type || "").toLowerCase();
+      return t === "binarytree" || t === "binarytreenode";
+    })
+    .map(([id, s]) => ({ id, ...s }));
+
+  const stackOrQueue = Object.entries(structures).find(
+    ([_, s]) => {
+      const t = (s.type || "").toLowerCase();
+      return t === "stack" || t === "queue";
+    }
+  )?.[1];
+
+  const helperArrays = Object.entries(structures)
+    .filter(([_, s]) => (s.type || "").toLowerCase() === "array")
+    .map(([id, s]) => ({ id, ...s }));
+
+  const results = Object.entries(variables)
+    .filter(([id]) => allStructures.find((s) => s.id === id && (s.type || "").toLowerCase() === "result"))
+    .map(([id, val]) => ({
+      id,
+      label: allStructures.find((s) => s.id === id)?.label || id,
+      value: val,
+    }));
+
+  const regularVariables = Object.entries(variables)
+    .filter(([id]) => allStructures.find((s) => s.id === id && (s.type || "").toLowerCase() !== "result"))
+    .map(([id, val]) => ({
+      id,
+      label: allStructures.find((s) => s.id === id)?.label || id,
+      value: val,
+    }));
+
+  const currentHighlight = normalizeHighlight(current.highlight || []);
+  const isHighlighted = (treeId, idx) => currentHighlight.includes(`${treeId}:${idx}`);
+
+  return (
+    <div className="w-full h-screen bg-gray-950 text-gray-100 flex flex-col fixed inset-0 overflow-hidden">
+      {/* Main Content */}
+      <div className="flex flex-1 gap-4 p-4 overflow-hidden">
+        {/* Left Panel: Trees (70%) */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Scrollable Trees */}
+          <div
+            ref={contentRef}
+            className="flex-1 overflow-y-auto space-y-6 pr-3 pb-2"
+          >
+            {/* Info Panel */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-12 gap-4 sticky top-0 bg-gray-950/95 py-4 rounded-lg border-2 border-cyan-500/30 px-4 z-10 shadow-lg backdrop-blur-sm"
+            >
+              <div className="col-span-4">
+                <div className="text-xs text-cyan-400 font-bold uppercase tracking-widest mb-2">
+                  Current Action
+                </div>
+                <motion.div
+                  key={action}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                  className="text-base font-semibold text-cyan-300 bg-cyan-900/30 px-3 py-2 rounded-lg border border-cyan-700"
+                >
+                  {action || "—"}
+                </motion.div>
+              </div>
+
+              <div className="col-span-4">
+                <div className="text-xs text-cyan-400 font-bold uppercase tracking-widest mb-2">
+                  Step Message
+                </div>
+                <motion.div
+                  key={stepIndex}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                  className="text-sm font-semibold text-cyan-200 bg-gray-800/50 px-3 py-2 rounded-lg line-clamp-2"
+                >
+                  {message || "Processing..."}
+                </motion.div>
+              </div>
+
+              <div className="col-span-4">
+                {condition && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <div className="text-xs text-cyan-400 font-bold uppercase tracking-widest mb-2">
+                      Condition
+                    </div>
+                    <div className="text-xs text-gray-300 font-mono mb-1 bg-gray-800/50 px-3 py-1 rounded-lg">
+                      {condition.expression}
+                    </div>
+                    <motion.div
+                      animate={{ scale: condition.result ? 1.05 : 1 }}
+                      className={`text-xs font-bold px-3 py-1 rounded-lg inline-block ${
+                        condition.result
+                          ? "bg-green-900/50 text-green-300 border border-green-600"
+                          : "bg-red-900/50 text-red-300 border border-red-600"
+                      }`}
+                    >
+                      {condition.result ? "✓ True" : "✗ False"}
+                    </motion.div>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Trees */}
+            <div className="flex gap-8 justify-center flex-wrap">
+              {trees.length > 0 ? (
+                trees.map((tree) => (
+                  <TreeRenderer
+                    key={tree.id}
+                    tree={tree}
+                    treeId={tree.id}
+                    isHighlighted={isHighlighted}
+                    currentHighlight={currentHighlight}
+                  />
+                ))
+              ) : (
+                <div className="text-gray-500 italic text-center py-12">
+                  No trees to display
+                </div>
+              )}
+            </div>
+
+            {/* Helper Arrays */}
+            {helperArrays.map((arr) => (
+              <motion.div
+                key={arr.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gray-900 border-2 border-cyan-500/40 rounded-lg p-6 shadow-lg mx-auto"
+              >
+                <div className="text-lg font-bold text-cyan-400 mb-3">
+                  {arr.label || arr.id}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {arr.data && arr.data.length > 0 ? (
+                    arr.data.map((val, idx) => {
+                      const isHL = isHighlighted(arr.id, idx);
+                      return (
+                        <motion.div
+                          key={`${arr.id}-${idx}`}
+                          layout
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{
+                            opacity: 1,
+                            scale: isHL ? 1.12 : 1,
+                          }}
+                          exit={{ opacity: 0, scale: 0.6 }}
+                          className={`w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center font-bold transition-colors ${
+                            isHL
+                              ? "bg-yellow-500/20 border-yellow-400 text-yellow-200"
+                              : "bg-gray-800 border-cyan-500 text-cyan-300"
+                          }`}
+                        >
+                          <div>{val}</div>
+                          <div className="text-xs text-gray-500 mt-1">[{idx}]</div>
+                        </motion.div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-gray-500 italic">—</div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Message Bar */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="border-t border-gray-800 bg-gray-900/80 px-4 py-3 text-sm text-gray-300 min-h-12 flex items-center"
+          >
+            {endReached
+              ? jsonData?.endMessage || "✅ Visualization Complete!"
+              : ""}
+          </motion.div>
+        </div>
+
+        {/* Right Sidebar (30%) */}
+        <div className="w-80 flex flex-col gap-4 min-w-0 overflow-y-auto">
+          {/* Stack/Queue */}
+          {stackOrQueue && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-gray-900 border-2 border-cyan-500/30 rounded-lg p-4 shadow-lg"
+            >
+              <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3">
+                {stackOrQueue.label || stackOrQueue.type}
+              </div>
+
+              <div
+                className={`flex ${
+                  stackOrQueue.type === "stack"
+                    ? "flex-col-reverse"
+                    : "flex-row flex-wrap"
+                } gap-2 justify-start`}
+              >
+                <AnimatePresence mode="popLayout">
+                  {stackOrQueue.data && stackOrQueue.data.length > 0 ? (
+                    stackOrQueue.data.map((val, idx) => {
+                      const isHL = isHighlighted(stackOrQueue.id, idx);
+                      return (
+                        <motion.div
+                          key={`${stackOrQueue.id}-${idx}-${val}`}
+                          layout
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{
+                            opacity: 1,
+                            scale: isHL ? 1.15 : 1,
+                            boxShadow: isHL
+                              ? "0 0 15px rgba(34, 211, 238, 0.6)"
+                              : "none",
+                          }}
+                          exit={{ opacity: 0, scale: 0.6 }}
+                          transition={{ type: "spring", stiffness: 280, damping: 22 }}
+                          className={`w-16 h-16 rounded-lg border-2 flex flex-col items-center justify-center font-bold text-sm transition-colors ${
+                            isHL
+                              ? "bg-yellow-500/20 border-yellow-400 text-yellow-200"
+                              : "bg-gray-800 border-cyan-500 text-cyan-300"
+                          }`}
+                        >
+                          {Array.isArray(val) ? val.join(",") : val}
+                        </motion.div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-gray-500 italic text-sm py-4">
+                      {stackOrQueue.type === "stack" ? "Stack" : "Queue"} is empty
+                    </div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Front/Rear indicators */}
+              {stackOrQueue.type === "queue" && stackOrQueue.data?.length > 0 && (
+                <div className="mt-3 flex justify-between text-xs text-cyan-300 font-semibold">
+                  <div>🡐 FRONT</div>
+                  <div>REAR 🡒</div>
+                </div>
+              )}
+              {stackOrQueue.type === "stack" && stackOrQueue.data?.length > 0 && (
+                <div className="mt-3 text-xs text-cyan-300 font-semibold text-center">
+                  ⬆ TOP
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Variables & Results */}
+          {(regularVariables.length > 0 || results.length > 0) && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-gray-900 border-2 border-cyan-500/30 rounded-lg p-4 shadow-lg flex-1 overflow-y-auto"
+            >
+              <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3">
+                📊 Variables
+              </div>
+
+              <div className="space-y-2.5">
+                {regularVariables.map(({ id, label, value }) => (
+                  <motion.div
+                    key={id}
+                    layout
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="p-3 rounded-lg bg-gray-800/50 border border-gray-700/50"
+                  >
+                    <div className="text-xs text-gray-400 font-semibold mb-1">
+                      {label}
+                    </div>
+                    <motion.div
+                      key={value}
+                      initial={{ scale: 1.1 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      className="text-sm font-bold font-mono text-cyan-300"
+                    >
+                      {value === null || value === undefined ? "—" : String(value)}
+                    </motion.div>
+                  </motion.div>
+                ))}
+
+                {results.map(({ id, label, value }) => (
+                  <motion.div
+                    key={id}
+                    layout
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="p-3 rounded-lg bg-green-900/20 border border-green-700/40"
+                  >
+                    <div className="text-xs text-green-400 font-semibold mb-1">
+                      {label} ✓
+                    </div>
+                    <motion.div
+                      key={value}
+                      initial={{ scale: 1.1 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      className="text-sm font-bold font-mono text-green-300"
+                    >
+                      {value === null || value === undefined ? "—" : String(value)}
+                    </motion.div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Controls */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-gray-900 border-2 border-cyan-500/30 rounded-lg p-4 shadow-lg"
+          >
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <motion.button
+                onClick={handlePrev}
+                disabled={stepIndex === 0}
+                whileHover={{ scale: stepIndex === 0 ? 1 : 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-sm transition-colors"
+              >
+                ⏮ Prev
+              </motion.button>
+
+              <motion.button
+                onClick={() => setPlaying((p) => !p)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors ${
+                  playing
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-cyan-600 hover:bg-cyan-700 text-white"
+                }`}
+              >
+                {playing ? "⏸ Pause" : "▶ Play"}
+              </motion.button>
+
+              <motion.button
+                onClick={handleNext}
+                disabled={stepIndex >= steps.length - 1}
+                whileHover={{ scale: stepIndex >= steps.length - 1 ? 1 : 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-sm transition-colors"
+              >
+                Next ⏭
+              </motion.button>
+
+              <motion.button
+                onClick={handleReset}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-sm transition-colors"
+              >
+                🔄 Reset
+              </motion.button>
+            </div>
+
+            <motion.div
+              className="text-sm text-cyan-400 font-semibold text-center bg-cyan-900/30 px-3 py-2 rounded-lg border border-cyan-700/50"
+              animate={{ scale: 1 }}
+              key={stepIndex}
+              initial={{ scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              {stepIndex + 1} / {steps.length}
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * TreeRenderer - Renders a proper binary tree structure
+ * Uses proper positioning algorithm with corrected edge endpoints
+ * 
+ * KEY FIX: Edges now start/end at node circle boundaries
+ * Instead of from the center of the positioned circle
+ */
+function TreeRenderer({ tree, treeId, isHighlighted, currentHighlight }) {
+  const NODE_RADIUS = 20;
+
+  if (!tree.data || tree.data.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-gray-900 border-2 border-cyan-500/40 rounded-lg p-6 shadow-lg"
+      >
+        <div className="text-center text-gray-500 italic py-8">
+          {tree.label || "Tree"} is empty
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Calculate positions for tree nodes
+  const positions = {};
+  const calculatePositions = (index, x, y, xOffset) => {
+    if (index >= tree.data.length || tree.data[index] == null) return;
+
+    positions[index] = { x, y };
+
+    const leftChild = 2 * index + 1;
+    const rightChild = 2 * index + 2;
+
+    if (leftChild < tree.data.length && tree.data[leftChild] != null) {
+      calculatePositions(leftChild, x - xOffset, y + 80, xOffset / 2);
+    }
+    if (rightChild < tree.data.length && tree.data[rightChild] != null) {
+      calculatePositions(rightChild, x + xOffset, y + 80, xOffset / 2);
+    }
+  };
+
+  calculatePositions(0, 150, 60, 75);
+
+  const treeHeight = Math.max(
+    ...Object.values(positions).map((p) => p.y),
+    100
+  ) + 100;
+  const treeWidth = 300;
+
+  /**
+   * Calculate edge endpoints at circle boundary
+   * Instead of from center positions
+   */
+  const getEdgeEndpoints = (fromPos, toPos) => {
+    // Calculate direction vector
+    const dx = toPos.x - fromPos.x;
+    const dy = toPos.y - fromPos.y;
+    
+    // Calculate distance
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Normalize direction
+    const dirX = dx / distance;
+    const dirY = dy / distance;
+    
+    // Start point: edge of from circle
+    const fromX = fromPos.x + dirX * NODE_RADIUS;
+    const fromY = fromPos.y + dirY * NODE_RADIUS;
+    
+    // End point: edge of to circle (going opposite direction)
+    const toX = toPos.x - dirX * NODE_RADIUS;
+    const toY = toPos.y - dirY * NODE_RADIUS;
+    
+    return { fromX, fromY, toX, toY };
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gray-900 border-2 border-cyan-500/40 rounded-lg p-6 shadow-lg"
+    >
+      <div className="text-center text-cyan-400 font-bold mb-4">
+        {tree.label || "Binary Tree"}
+      </div>
+
+      <svg
+        width={treeWidth}
+        height={treeHeight}
+        className="mx-auto"
+        style={{ background: "transparent" }}
+      >
+        {/* Draw edges */}
+        {tree.data.map((node, idx) => {
+          if (node == null || !positions[idx]) return null;
+
+          const leftChild = 2 * idx + 1;
+          const rightChild = 2 * idx + 2;
+          const edges = [];
+
+          if (
+            leftChild < tree.data.length &&
+            tree.data[leftChild] != null &&
+            positions[leftChild]
+          ) {
+            const { fromX, fromY, toX, toY } = getEdgeEndpoints(
+              positions[idx],
+              positions[leftChild]
+            );
+            
+            edges.push(
+              <motion.line
+                key={`edge-${idx}-${leftChild}`}
+                x1={fromX}
+                y1={fromY}
+                x2={toX}
+                y2={toY}
+                stroke="rgba(34, 211, 238, 0.4)"
+                strokeWidth="2"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+              />
+            );
+          }
+
+          if (
+            rightChild < tree.data.length &&
+            tree.data[rightChild] != null &&
+            positions[rightChild]
+          ) {
+            const { fromX, fromY, toX, toY } = getEdgeEndpoints(
+              positions[idx],
+              positions[rightChild]
+            );
+            
+            edges.push(
+              <motion.line
+                key={`edge-${idx}-${rightChild}`}
+                x1={fromX}
+                y1={fromY}
+                x2={toX}
+                y2={toY}
+                stroke="rgba(34, 211, 238, 0.4)"
+                strokeWidth="2"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+              />
+            );
+          }
+
+          return edges;
+        })}
+
+        {/* Draw nodes */}
+        {tree.data.map((node, idx) => {
+          if (node == null || !positions[idx]) return null;
+
+          const isHL = isHighlighted(treeId, idx);
+
+          return (
+            <motion.g key={`node-${idx}`}>
+              <motion.circle
+                cx={positions[idx].x}
+                cy={positions[idx].y}
+                r={NODE_RADIUS}
+                fill={isHL ? "rgba(234, 179, 8, 0.3)" : "rgba(34, 211, 238, 0.2)"}
+                stroke={isHL ? "rgb(234, 179, 8)" : "rgb(34, 211, 238)"}
+                strokeWidth="2"
+                initial={{ opacity: 0, r: 0 }}
+                animate={{ opacity: 1, r: NODE_RADIUS }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              />
+              <motion.text
+                x={positions[idx].x}
+                y={positions[idx].y + 6}
+                textAnchor="middle"
+                fill={isHL ? "rgb(250, 204, 21)" : "rgb(34, 211, 238)"}
+                fontSize="14"
+                fontWeight="bold"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                {node}
+              </motion.text>
+            </motion.g>
+          );
+        })}
+      </svg>
+    </motion.div>
+  );
+}

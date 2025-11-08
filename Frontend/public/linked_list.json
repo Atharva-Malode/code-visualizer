@@ -1,0 +1,189 @@
+{
+  "questionName": "Detect Cycle in a Linked List (Floyd's Algorithm)",
+  "patternType": "linkedlist",
+  "sampleInput": {
+    "list": [3, 2, 0, -4],
+    "cycleStartIndex": 1
+  },
+  "sampleOutput": true,
+
+  "visualLayout": {
+    "structures": [
+      {
+        "id": "list",
+        "type": "linkedlist",
+        "label": "Linked List",
+        "data": [3, 2, 0, -4],
+        "cycleStart": 1,
+        "cycleEnd": 3
+      },
+      {
+        "id": "slow",
+        "type": "variable",
+        "label": "Slow Pointer",
+        "value": 3
+      },
+      {
+        "id": "fast",
+        "type": "variable",
+        "label": "Fast Pointer",
+        "value": 3
+      },
+      {
+        "id": "cycleFound",
+        "type": "variable",
+        "label": "Cycle Detected",
+        "value": false
+      }
+    ]
+  },
+
+  "steps": [
+    {
+      "step": 1,
+      "action": "pointerMove",
+      "elements": [],
+      "highlight": [{ "structure": "list", "index": 0 }],
+      "message": "Initialize both slow and fast pointers at the head (value 3).",
+      "stateChange": {
+        "slow": 3,
+        "fast": 3
+      }
+    },
+    {
+      "step": 2,
+      "action": "pointerMove",
+      "elements": [],
+      "highlight": [
+        { "structure": "list", "index": 1 },
+        { "structure": "list", "index": 2 }
+      ],
+      "message": "Move slow by one (to value 2) and fast by two (to value 0).",
+      "stateChange": {
+        "slow": 2,
+        "fast": 0
+      }
+    },
+    {
+      "step": 3,
+      "action": "compare",
+      "elements": [],
+      "highlight": [
+        { "structure": "list", "index": 1 },
+        { "structure": "list", "index": 2 }
+      ],
+      "message": "Check if slow == fast → (2 ≠ 0). No cycle yet.",
+      "condition": {
+        "expression": "slow == fast",
+        "result": false
+      },
+      "stateChange": {}
+    },
+    {
+      "step": 4,
+      "action": "pointerMove",
+      "elements": [],
+      "highlight": [
+        { "structure": "list", "index": 2 },
+        { "structure": "list", "index": 0 }
+      ],
+      "message": "Move slow to next (0) and fast two steps ahead (back to 2 due to cycle).",
+      "stateChange": {
+        "slow": 0,
+        "fast": 2
+      }
+    },
+    {
+      "step": 5,
+      "action": "compare",
+      "elements": [],
+      "highlight": [
+        { "structure": "list", "index": 2 },
+        { "structure": "list", "index": 1 }
+      ],
+      "message": "Compare slow (0) and fast (2). Still not equal — continue traversal.",
+      "condition": {
+        "expression": "slow == fast",
+        "result": false
+      },
+      "stateChange": {}
+    },
+    {
+      "step": 6,
+      "action": "pointerMove",
+      "elements": [],
+      "highlight": [
+        { "structure": "list", "index": 3 },
+        { "structure": "list", "index": 0 }
+      ],
+      "message": "Move slow to next (−4) and fast two steps ahead (0).",
+      "stateChange": {
+        "slow": -4,
+        "fast": 0
+      }
+    },
+    {
+      "step": 7,
+      "action": "compare",
+      "elements": [],
+      "highlight": [
+        { "structure": "list", "index": 3 },
+        { "structure": "list", "index": 2 }
+      ],
+      "message": "Compare slow (−4) and fast (0). Still not equal.",
+      "condition": {
+        "expression": "slow == fast",
+        "result": false
+      },
+      "stateChange": {}
+    },
+    {
+      "step": 8,
+      "action": "pointerMove",
+      "elements": [],
+      "highlight": [
+        { "structure": "list", "index": 1 },
+        { "structure": "list", "index": 2 }
+      ],
+      "message": "Move slow to next (2). Move fast two steps ahead → lands at same node (2).",
+      "stateChange": {
+        "slow": 2,
+        "fast": 2
+      }
+    },
+    {
+      "step": 9,
+      "action": "compare",
+      "elements": [],
+      "highlight": [{ "structure": "list", "index": 1 }],
+      "message": "slow == fast → both point to node (2). Cycle detected!",
+      "condition": {
+        "expression": "slow == fast",
+        "result": true
+      },
+      "stateChange": {
+        "cycleFound": true
+      }
+    },
+    {
+      "step": 10,
+      "action": "mark",
+      "elements": [],
+      "highlight": [{ "structure": "list", "index": 1 }],
+      "message": "✅ Cycle found at node with value 2.",
+      "stateChange": {
+        "cycleFound": true
+      }
+    }
+  ],
+
+  "endMessage": "🎯 Cycle detected using Floyd’s algorithm (slow and fast pointers meet).",
+
+  "actionReference": {
+    "visit": "Highlight current node being processed.",
+    "compare": "Compare positions of slow and fast pointers.",
+    "pointerMove": "Advance slow by one step and fast by two steps.",
+    "mark": "Mark the meeting point when both pointers meet (cycle found).",
+    "update": "Update pointer positions and states after each move."
+  }
+}

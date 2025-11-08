@@ -1,0 +1,57 @@
+{
+  "questionName": "", 
+  "patternType": "", 
+  "sampleInput": {},
+  "sampleOutput": {},
+
+  "visualLayout": {
+    "structures": [
+      {
+        "id": "",
+        "type": "", 
+        "label": "",
+        "data": [],
+        "rows": 0,
+        "cols": 0,
+        "value": null
+      }
+    ]
+  },
+
+  "steps": [
+    {
+      "step": 1,
+      "action": "", 
+      "elements": [],
+      "highlight": [],
+      "message": "",
+      
+      "condition": {
+        "expression": "", 
+        "result": true
+      },
+
+      "stateChange": {}
+    }
+  ],
+
+  "endMessage": "",
+
+  "actionReference": {
+    "visit": "Highlight element or node — used in traversals",
+    "compare": "Compare two elements — used in sorting or searching",
+    "swap": "Exchange two elements — used in sorting or reversing",
+    "mark": "Mark element as done/visited/sorted",
+    "push": "Push value to stack — stack-based operations",
+    "pop": "Pop value from stack",
+    "enqueue": "Add to queue — BFS operations",
+    "dequeue": "Remove from queue",
+    "pointerMove": "Move pointer (like i++, j++) — used in 2-pointers or linked lists",
+    "update": "Update a value in array, grid, or variable",
+    "connect": "Add edge between nodes — used in graphs",
+    "disconnect": "Remove edge — used in graphs",
+    "stateChange": "Generic variable/stat update (e.g., comparisons++)",
+    "create": "Create new node/structure",
+    "delete": "Delete node/structure"
+  }
+}

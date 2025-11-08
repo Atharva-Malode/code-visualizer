@@ -1,0 +1,131 @@
+{
+  "questionName": "Valid Parentheses (Stack Approach)",
+  "patternType": "stack",
+  "sampleInput": "({[]})",
+  "sampleOutput": "true",
+
+  "visualLayout": {
+    "structures": [
+      {
+        "id": "stack1",
+        "type": "stack",
+        "label": "Parentheses Stack",
+        "data": []
+      },
+      {
+        "id": "expression",
+        "type": "array",
+        "label": "Expression",
+        "data": ["(", "{", "[", "]", "}", ")"]
+      },
+      {
+        "id": "current",
+        "type": "variable",
+        "label": "Current Character",
+        "value": ""
+      },
+      {
+        "id": "isValid",
+        "type": "variable",
+        "label": "Is Valid",
+        "value": true
+      }
+    ]
+  },
+
+  "steps": [
+    {
+      "step": 1,
+      "action": "visit",
+      "elements": [0],
+      "highlight": [{ "structure": "expression", "index": 0 }],
+      "message": "Start reading the expression — first character '(' is an opening bracket, push it to stack.",
+      "stateChange": {
+        "stack1": ["("],
+        "current": "("
+      }
+    },
+    {
+      "step": 2,
+      "action": "visit",
+      "elements": [1],
+      "highlight": [{ "structure": "expression", "index": 1 }],
+      "message": "Encounter '{' — another opening bracket, push to stack.",
+      "stateChange": {
+        "stack1": ["(", "{"],
+        "current": "{"
+      }
+    },
+    {
+      "step": 3,
+      "action": "visit",
+      "elements": [2],
+      "highlight": [{ "structure": "expression", "index": 2 }],
+      "message": "Next is '[', push it to stack.",
+      "stateChange": {
+        "stack1": ["(", "{", "["],
+        "current": "["
+      }
+    },
+    {
+      "step": 4,
+      "action": "compare",
+      "elements": [3],
+      "highlight": [
+        { "structure": "expression", "index": 3 },
+        { "structure": "stack1", "index": 2 }
+      ],
+      "message": "Encounter ']', matches with top '[' → pop from stack.",
+      "stateChange": {
+        "stack1": ["(", "{"],
+        "current": "]"
+      }
+    },
+    {
+      "step": 5,
+      "action": "compare",
+      "elements": [4],
+      "highlight": [
+        { "structure": "expression", "index": 4 },
+        { "structure": "stack1", "index": 1 }
+      ],
+      "message": "Encounter '}', matches with top '{' → pop from stack.",
+      "stateChange": {
+        "stack1": ["("],
+        "current": "}"
+      }
+    },
+    {
+      "step": 6,
+      "action": "compare",
+      "elements": [5],
+      "highlight": [
+        { "structure": "expression", "index": 5 },
+        { "structure": "stack1", "index": 0 }
+      ],
+      "message": "Encounter ')', matches with top '(' → pop from stack.",
+      "stateChange": {
+        "stack1": [],
+        "current": ")"
+      }
+    },
+    {
+      "step": 7,
+      "action": "mark",
+      "highlight": [{ "structure": "isValid" }],
+      "message": "Traversal complete — stack is empty and all brackets matched correctly ✅",
+      "stateChange": {
+        "isValid": true
+      }
+    }
+  ],
+
+  "endMessage": "✅ All parentheses are balanced — expression is valid.",
+
+  "actionReference": {
+    "visit": "Process the current character and decide if it’s an opening or closing bracket.",
+    "compare": "If closing, compare with top of stack and pop if matched.",
+    "push": "Push opening brackets onto stack.",
+    "mark": "Final validation result after traversal."
+  }
+}

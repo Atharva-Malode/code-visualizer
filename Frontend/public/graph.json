@@ -1,0 +1,392 @@
+{
+    "questionName": "Cycle Detection in Directed Graph",
+    "patternType": "graph",
+    "sampleInput": {
+      "numNodes": 4,
+      "edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    "sampleOutput": true,
+    "visualLayout": {
+      "structures": [
+        {
+          "id": "graph",
+          "type": "graph",
+          "label": "Graph Adjacency List",
+          "data": [
+            {
+              "id": 0,
+              "neighbors": [
+                1
+              ]
+            },
+            {
+              "id": 1,
+              "neighbors": [
+                2
+              ]
+            },
+            {
+              "id": 2,
+              "neighbors": [
+                0,
+                3
+              ]
+            },
+            {
+              "id": 3,
+              "neighbors": []
+            }
+          ],
+          "rows": 0,
+          "cols": 0,
+          "value": null
+        },
+        {
+          "id": "visited",
+          "type": "array",
+          "label": "Visited Nodes (Global)",
+          "data": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "rows": 0,
+          "cols": 0,
+          "value": null
+        },
+        {
+          "id": "recursionStack",
+          "type": "array",
+          "label": "In Current DFS Path",
+          "data": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "rows": 0,
+          "cols": 0,
+          "value": null
+        },
+        {
+          "id": "result",
+          "type": "variable",
+          "label": "Cycle Detected?",
+          "data": [],
+          "rows": 0,
+          "cols": 0,
+          "value": false
+        }
+      ]
+    },
+    "steps": [
+      {
+        "step": 1,
+        "action": "visit",
+        "highlight": [],
+        "message": "Initialize 'visited' and 'recursionStack' arrays to false for all nodes. Start iterating through nodes to perform DFS.",
+        "condition": null,
+        "stateChange": {}
+      },
+      {
+        "step": 2,
+        "action": "visit",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              0
+            ]
+          }
+        ],
+        "message": "Start DFS from node 0 (since it's not globally visited).",
+        "condition": null,
+        "stateChange": {}
+      },
+      {
+        "step": 3,
+        "action": "update",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              0
+            ]
+          },
+          {
+            "structureId": "visited",
+            "indices": [
+              0
+            ]
+          },
+          {
+            "structureId": "recursionStack",
+            "indices": [
+              0
+            ]
+          }
+        ],
+        "message": "Mark node 0 as globally visited and part of the current recursion stack.",
+        "condition": null,
+        "stateChange": {
+          "visited": {
+            "0": true
+          },
+          "recursionStack": {
+            "0": true
+          }
+        }
+      },
+      {
+        "step": 4,
+        "action": "visit",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              0
+            ]
+          },
+          {
+            "structureId": "graph",
+            "edges": [
+              [
+                0,
+                1
+              ]
+            ]
+          }
+        ],
+        "message": "Explore neighbor 1 from node 0.",
+        "condition": null,
+        "stateChange": {}
+      },
+      {
+        "step": 5,
+        "action": "visit",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              1
+            ]
+          },
+          {
+            "structureId": "visited",
+            "indices": [
+              1
+            ]
+          }
+        ],
+        "message": "Node 1 is not globally visited. Recursively call DFS for node 1.",
+        "condition": {
+          "expression": "visited[1] == false",
+          "result": true
+        },
+        "stateChange": {}
+      },
+      {
+        "step": 6,
+        "action": "update",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              1
+            ]
+          },
+          {
+            "structureId": "visited",
+            "indices": [
+              1
+            ]
+          },
+          {
+            "structureId": "recursionStack",
+            "indices": [
+              1
+            ]
+          }
+        ],
+        "message": "Mark node 1 as globally visited and part of the current recursion stack.",
+        "condition": null,
+        "stateChange": {
+          "visited": {
+            "1": true
+          },
+          "recursionStack": {
+            "1": true
+          }
+        }
+      },
+      {
+        "step": 7,
+        "action": "visit",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              1
+            ]
+          },
+          {
+            "structureId": "graph",
+            "edges": [
+              [
+                1,
+                2
+              ]
+            ]
+          }
+        ],
+        "message": "Explore neighbor 2 from node 1.",
+        "condition": null,
+        "stateChange": {}
+      },
+      {
+        "step": 8,
+        "action": "visit",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              2
+            ]
+          },
+          {
+            "structureId": "visited",
+            "indices": [
+              2
+            ]
+          }
+        ],
+        "message": "Node 2 is not globally visited. Recursively call DFS for node 2.",
+        "condition": {
+          "expression": "visited[2] == false",
+          "result": true
+        },
+        "stateChange": {}
+      },
+      {
+        "step": 9,
+        "action": "update",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              2
+            ]
+          },
+          {
+            "structureId": "visited",
+            "indices": [
+              2
+            ]
+          },
+          {
+            "structureId": "recursionStack",
+            "indices": [
+              2
+            ]
+          }
+        ],
+        "message": "Mark node 2 as globally visited and part of the current recursion stack.",
+        "condition": null,
+        "stateChange": {
+          "visited": {
+            "2": true
+          },
+          "recursionStack": {
+            "2": true
+          }
+        }
+      },
+      {
+        "step": 10,
+        "action": "visit",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              2
+            ]
+          },
+          {
+            "structureId": "graph",
+            "edges": [
+              [
+                2,
+                0
+              ]
+            ]
+          }
+        ],
+        "message": "Explore neighbor 0 from node 2.",
+        "condition": null,
+        "stateChange": {}
+      },
+      {
+        "step": 11,
+        "action": "compare",
+        "highlight": [
+          {
+            "structureId": "graph",
+            "nodes": [
+              0
+            ]
+          },
+          {
+            "structureId": "visited",
+            "indices": [
+              0
+            ]
+          },
+          {
+            "structureId": "recursionStack",
+            "indices": [
+              0
+            ]
+          }
+        ],
+        "message": "Neighbor 0 is globally visited AND is currently in the recursion stack. This indicates a cycle!",
+        "condition": {
+          "expression": "visited[0] == true && recursionStack[0] == true",
+          "result": true
+        },
+        "stateChange": {}
+      },
+      {
+        "step": 12,
+        "action": "update",
+        "highlight": [
+          {
+            "structureId": "result"
+          }
+        ],
+        "message": "A cycle has been detected (0 -> 1 -> 2 -> 0). Set result to true.",
+        "condition": null,
+        "stateChange": {
+          "result": true
+        }
+      }
+    ],
+    "endMessage": "A cycle (0 -> 1 -> 2 -> 0) was detected in the directed graph. The algorithm terminates early upon finding the first cycle."
+}
