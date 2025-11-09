@@ -1,12 +1,19 @@
 import LinkedListVisualizer from "./LinkedList";
-import Visualizer from "./ArrayVisualizer";
 import StackVisualizer from "./StackVisualizer";
 import QueueVisualizer from "./Queue";
 import BinaryTreeVisualizer from "./BinaryTree";
 import MatrixVisualizer from "./matrix";
 import GraphVisualizer from "./Graph";
+import {
+  VizCtx,
+  makeStore,
+  LeftPane,
+  CenterPane,
+  RightPane,
+  ControlsPane,
+} from "./ArrayVisualizer";
 
-export default function VisualizerSelector({ jsonData }) {
+export default function VisualizerSelector({ jsonData, originalPrompt }) {
   const pattern = jsonData?.patternType?.toLowerCase?.() || "array";
 
   // Normalize structures in case backend uses visualLayout
@@ -30,8 +37,9 @@ export default function VisualizerSelector({ jsonData }) {
       return <GraphVisualizer jsonData={normalizedData} />;
     case "array":
     default:
+      const store = makeStore(normalizedData, originalPrompt);
       return (
-        <Visualizer jsonData={normalizedData}>
+        <VizCtx.Provider value={store}>
           <main className="flex-1 grid grid-cols-12 gap-4 px-6 py-2">
             {/* Left: Variables / Pointers */}
             <section className="col-span-3">
@@ -39,7 +47,7 @@ export default function VisualizerSelector({ jsonData }) {
                 <h2 className="text-sm text-gray-400 mb-2">
                   Pointers & Variables
                 </h2>
-                <Visualizer region="left" />
+                <LeftPane />
               </div>
             </section>
 
@@ -48,7 +56,7 @@ export default function VisualizerSelector({ jsonData }) {
               <div className="bg-gray-900 rounded-2xl p-4 h-full flex flex-col">
                 <h2 className="text-sm text-gray-400 mb-2">Structures</h2>
                 <div className="flex-1 flex items-center justify-center">
-                  <Visualizer region="center" />
+                  <CenterPane />
                 </div>
               </div>
             </section>
@@ -57,16 +65,16 @@ export default function VisualizerSelector({ jsonData }) {
             <section className="col-span-3">
               <div className="bg-gray-900 rounded-2xl p-4 h-full">
                 <h2 className="text-sm text-gray-400 mb-2">Stats</h2>
-                <Visualizer region="right" />
+                <RightPane />
               </div>
             </section>
           </main>
 
           {/* Controls */}
           <footer className="w-full flex justify-center pb-4">
-            <Visualizer region="controls" />
+            <ControlsPane />
           </footer>
-        </Visualizer>
+        </VizCtx.Provider>
       );
   }
 }

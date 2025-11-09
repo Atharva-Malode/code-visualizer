@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// import StepControls from "./StepControls";
+import { useNavigate } from "react-router-dom";
 import StepControls from "../components/StepControls";
 
 const VizCtx = createContext(null);
@@ -16,10 +16,10 @@ function useViz() {
   return ctx;
 }
 
-export default function Visualizer({ jsonData, region, children }) {
+export default function Visualizer({ jsonData, originalPrompt, region, children }) {
   const storeRef = useRef(null);
   if (jsonData && !storeRef.current) {
-    storeRef.current = makeStore(jsonData);
+    storeRef.current = makeStore(jsonData, originalPrompt);
   }
   const store = storeRef.current;
 
@@ -33,7 +33,7 @@ export default function Visualizer({ jsonData, region, children }) {
 
 /* ========================= STORE / ENGINE ========================= */
 
-function makeStore(jsonData) {
+function makeStore(jsonData, originalPrompt) {
   const base = structuredClone(jsonData.visualLayout?.structures || []);
   const initialStructs = base.map((s) =>
     s.type === "array"
@@ -53,6 +53,7 @@ function makeStore(jsonData) {
 
   const store = {
     jsonData,
+    originalPrompt: originalPrompt || '',
     steps,
     idxById,
     state: {
@@ -492,7 +493,18 @@ function ControlsPane() {
   const [snap, setSnap] = useState(store.state);
   useEffect(() => store.subscribe(setSnap), [store]);
 
+  const navigate = useNavigate();
   const total = store.steps.length;
+  const showSolutionButton = !snap.playing && store.jsonData?.patternType?.toLowerCase() === 'array';
+
+  const handleSolution = () => {
+    navigate("/solution", {
+      state: {
+        data: store.jsonData,
+        originalPrompt: store.originalPrompt,
+      },
+    });
+  };
 
   return (
     <motion.div layout>
@@ -513,6 +525,8 @@ function ControlsPane() {
         step={Math.min(snap.stepIdx + 1, total)}
         total={total}
         disabled={snap.busy}
+        showSolutionButton={showSolutionButton}
+        onSolution={handleSolution}
       />
     </motion.div>
   );
@@ -551,4 +565,4 @@ function MessagePane() {
   );
 }
 
-export { useViz };
+export { useViz, VizCtx, makeStore, LeftPane, CenterPane, RightPane, ControlsPane, MessagePane };

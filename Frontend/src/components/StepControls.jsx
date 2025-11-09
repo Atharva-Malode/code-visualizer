@@ -7,6 +7,8 @@ export default function StepControls({
   step,
   total,
   disabled,
+  showSolutionButton,
+  onSolution,
 }) {
   return (
     <div className="flex gap-6 bg-gray-900 rounded-xl px-6 py-3 shadow-lg">
@@ -38,6 +40,15 @@ export default function StepControls({
       >
         ⏭️ Next
       </button>
+      {showSolutionButton && (
+        <button
+          onClick={onSolution}
+          disabled={disabled}
+          className="px-4 py-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-400 disabled:opacity-50"
+        >
+          📚 View Solution
+        </button>
+      )}
       <div className="ml-2 self-center text-sm text-gray-400">
         Step {step} / {total}
       </div>

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field, validator
+from typing import Optional, Dict, Any, Union
 import json, logging, os, re
-from typing import Optional, Dict, Any
 from google import genai
 from dotenv import load_dotenv
 
@@ -59,7 +59,7 @@ class InputModel(BaseModel):
 
 class ResponseModel(BaseModel):
     success: bool
-    data: Optional[dict] = None
+    data: Optional[Union[dict, str]] = None
     error: Optional[str] = None
     message: Optional[str] = None
 
@@ -99,6 +99,18 @@ def clean_json_response(text: str) -> str:
     last = text.rfind("}")
     if last > 0:
         text = text[:last+1]
+    return text
+
+
+def clean_mermaid_response(text: str) -> str:
+    """Strip markdown and extract Mermaid code"""
+    text = text.strip()
+    if text.startswith("```"):
+        match = re.search(r'```(?:mermaid)?\n?(.*?)\n?```', text, re.DOTALL)
+        if match:
+            text = match.group(1)
+    if text.startswith("mermaid"):
+        text = text[len("mermaid"):].strip()
     return text
 
 
@@ -229,7 +241,55 @@ Return only the valid JSON (no markdown or text outside the JSON).
     final_prompt = base_schema + "\n" + user_section.strip()
     return final_prompt
 
+def build_prompt_for_solution(prompt: str) -> str:
+    """
+    Prompt for generating Python solution code.
+    """
+    return f"""
+        You are a DSA expert. Write a complete, efficient Python 3 solution for this problem.
 
+        Problem: {prompt}
+
+        Requirements:
+        - Use Python 3 syntax
+        - Include clear comments for each major step
+        - Handle edge cases (empty input, etc.)
+        - Use lists for arrays
+        - Return the expected output
+        - Optimal time and space complexity
+        - No external libraries beyond built-ins
+
+        Return ONLY the Python code. No explanations or markdown outside the code block.
+        ```python
+        def solution(input_data):
+            # Your code here
+            pass
+        ```
+    """
+
+
+def build_prompt_for_flowchart(prompt: str) -> str:
+    """
+    Prompt for generating Mermaid flowchart.
+    """
+    return f"""
+        You are a DSA expert. Generate a Mermaid flowchart for solving this problem.
+
+        Problem: {prompt}
+
+        Requirements:
+        - Use 'flowchart TD' direction (top-down)
+        - Nodes: Start, Input, Decisions (diamonds), Actions (rectangles), Output, End
+        - Show main steps: initialization, loops, conditions, updates, return
+        - Keep it concise (10-20 nodes max)
+        - Use clear labels
+
+        Return ONLY the Mermaid code. No other text.
+        ```mermaid
+        flowchart TD
+            Start --> ...
+        ```
+    """
 
 
 @router.post("/generate-visualization", response_model=ResponseModel)
@@ -286,6 +346,92 @@ async def generate_visualization(input_data: InputModel):
             success=True,
             data=result,
             message=f"Visualization generated from {input_type} input"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-solution", response_model=ResponseModel)
+async def generate_solution(input_data: InputModel):
+    """
+    Generates Python solution code for the DSA problem.
+    """
+    try:
+        if not client:
+            raise HTTPException(
+                status_code=503,
+                detail="Gemini client not configured"
+            )
+
+        full_prompt = build_prompt_for_solution(input_data.prompt)
+
+        logger.info("Generating solution code...")
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=full_prompt
+        )
+
+        if not response or not response.text:
+            raise HTTPException(
+                status_code=500,
+                detail="Empty response from Gemini"
+            )
+
+        cleaned = response.text.strip()
+        logger.info(f"✅ Generated solution code")
+
+        return ResponseModel(
+            success=True,
+            data=cleaned,
+            message="Solution code generated"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-flowchart", response_model=ResponseModel)
+async def generate_flowchart(input_data: InputModel):
+    """
+    Generates Mermaid flowchart code for the DSA problem.
+    """
+    try:
+        if not client:
+            raise HTTPException(
+                status_code=503,
+                detail="Gemini client not configured"
+            )
+
+        full_prompt = build_prompt_for_flowchart(input_data.prompt)
+
+        logger.info("Generating flowchart...")
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=full_prompt
+        )
+
+        if not response or not response.text:
+            raise HTTPException(
+                status_code=500,
+                detail="Empty response from Gemini"
+            )
+
+        cleaned = clean_mermaid_response(response.text)
+        logger.info(f"✅ Generated flowchart code")
+
+        return ResponseModel(
+            success=True,
+            data=cleaned,
+            message="Flowchart generated"
         )
 
     except HTTPException:

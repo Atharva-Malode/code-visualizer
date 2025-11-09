@@ -5,6 +5,7 @@ import VisualizerSelector from "../visualizers/VisualizerSelector";
 export default function VisualizePage() {
   const location = useLocation();
   const [data, setData] = useState(location.state?.data || null);
+  const [originalPrompt, setOriginalPrompt] = useState(location.state?.originalPrompt || '');
 
   useEffect(() => {
     // Optional fallback if user directly visits /visualize
@@ -30,7 +31,7 @@ export default function VisualizePage() {
       </header>
 
       {/* ✅ Auto-select correct visualizer */}
-      <VisualizerSelector jsonData={data} />
+      <VisualizerSelector jsonData={data} originalPrompt={originalPrompt} />
     </div>
   );
 }
