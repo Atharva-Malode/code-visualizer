@@ -343,7 +343,7 @@ export default function HomePage() {
 
 //       if (USE_LOCAL_JSON) {
 //         // ✅ Load from public/sample.json
-//         const response = await fetch("graph.json");
+//         const response = await fetch("linked_list.json");
 //         if (!response.ok) throw new Error("Failed to load local JSON");
 //         data = await response.json();
 //         console.log("Loaded local JSON:", data);}
@@ -387,66 +387,6 @@ export default function HomePage() {
 //           className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-6 py-2 rounded-xl transition-all duration-300"
 //         >
 //           {USE_LOCAL_JSON ? "Load Local Visualization 🔍" : "Visualize 🚀"}
-//         </button>
-//       </div>
-
-//       <AnimatePresence>{loading && <Loader pattern={pattern} />}</AnimatePresence>
-//     </div>
-//   );
-// }
-
-//api code 
-// import { useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { AnimatePresence } from "framer-motion";
-// import CodeInput from "../components/CodeInput";
-// import Loader from "../components/Loader";
-
-// export default function HomePage() {
-//   const [loading, setLoading] = useState(false);
-//   const [pattern, setPattern] = useState(null);
-//   const [inputText, setInputText] = useState("");
-//   const navigate = useNavigate();
-
-//   const handleVisualize = async () => {
-//     if (!inputText.trim()) return alert("Please enter a problem or code first!");
-
-//     setLoading(true);
-//     try {
-//       const response = await fetch("http://127.0.0.1:8000/generate-json", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ prompt: inputText }),
-//       });
-
-//       if (!response.ok) throw new Error(`Server returned ${response.status}`);
-
-//       const data = await response.json();
-//       console.log("Received JSON:", data);
-//       setPattern(data.patternType || "Unknown");
-
-//       // 🧠 Navigate to visualize with data
-//       setTimeout(() => navigate("/visualize", { state: { data } }), 1500);
-//     } catch (e) {
-//       console.error("Error:", e);
-//       setPattern("Unknown");
-//       setTimeout(() => navigate("/visualize"), 1500);
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col items-center justify-center p-8">
-//       <h1 className="text-3xl font-semibold mb-6 text-cyan-400">
-//         🔮 DSA Visualizer
-//       </h1>
-
-//       <div className="w-full max-w-3xl bg-gray-900 rounded-2xl shadow-lg p-6">
-//         <CodeInput value={inputText} onChange={setInputText} />
-//         <button
-//           onClick={handleVisualize}
-//           className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-6 py-2 rounded-xl transition-all duration-300"
-//         >
-//           Visualize 🚀
 //         </button>
 //       </div>
 

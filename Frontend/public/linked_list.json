@@ -1,189 +1,324 @@
 {
-  "questionName": "Detect Cycle in a Linked List (Floyd's Algorithm)",
+  "questionName": "Merge Two Sorted Linked Lists",
   "patternType": "linkedlist",
   "sampleInput": {
-    "list": [3, 2, 0, -4],
-    "cycleStartIndex": 1
+    "listA": [1, 3, 5],
+    "listB": [2, 4, 6]
   },
-  "sampleOutput": true,
-
+  "sampleOutput": {
+    "mergedList": [1, 2, 3, 4, 5, 6]
+  },
   "visualLayout": {
     "structures": [
       {
-        "id": "list",
-        "type": "linkedlist",
-        "label": "Linked List",
-        "data": [3, 2, 0, -4],
-        "cycleStart": 1,
-        "cycleEnd": 3
+        "id": "listA",
+        "type": "linkedList",
+        "label": "List A",
+        "data": [1, 3, 5],
+        "rows": 1,
+        "cols": 3,
+        "value": null
       },
       {
-        "id": "slow",
-        "type": "variable",
-        "label": "Slow Pointer",
-        "value": 3
+        "id": "listB",
+        "type": "linkedList",
+        "label": "List B",
+        "data": [2, 4, 6],
+        "rows": 1,
+        "cols": 3,
+        "value": null
       },
       {
-        "id": "fast",
-        "type": "variable",
-        "label": "Fast Pointer",
-        "value": 3
+        "id": "mergedList",
+        "type": "linkedList",
+        "label": "Merged List (Dummy Head)",
+        "data": [0],
+        "rows": 1,
+        "cols": 1,
+        "value": null
       },
       {
-        "id": "cycleFound",
-        "type": "variable",
-        "label": "Cycle Detected",
-        "value": false
+        "id": "pointer_p",
+        "type": "pointer",
+        "label": "Pointer P",
+        "data": [],
+        "rows": 0,
+        "cols": 0,
+        "value": "listA_node_0"
+      },
+      {
+        "id": "pointer_q",
+        "type": "pointer",
+        "label": "Pointer Q",
+        "data": [],
+        "rows": 0,
+        "cols": 0,
+        "value": "listB_node_0"
+      },
+      {
+        "id": "pointer_current",
+        "type": "pointer",
+        "label": "Current (Tail)",
+        "data": [],
+        "rows": 0,
+        "cols": 0,
+        "value": "mergedList_node_0"
       }
     ]
   },
-
   "steps": [
     {
       "step": 1,
-      "action": "pointerMove",
-      "elements": [],
-      "highlight": [{ "structure": "list", "index": 0 }],
-      "message": "Initialize both slow and fast pointers at the head (value 3).",
+      "action": "create",
+      "elements": ["mergedList_node_0"],
+      "highlight": ["mergedList_node_0"],
+      "message": "Start by creating a **dummy head** node for the merged list. This simplifies handling the head of the new list. Initialize the **Current (Tail)** pointer to this dummy head.",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
       "stateChange": {
-        "slow": 3,
-        "fast": 3
+        "pointer_current": "mergedList_node_0",
+        "pointer_p": "listA_node_0",
+        "pointer_q": "listB_node_0"
       }
     },
     {
       "step": 2,
       "action": "pointerMove",
-      "elements": [],
-      "highlight": [
-        { "structure": "list", "index": 1 },
-        { "structure": "list", "index": 2 }
-      ],
-      "message": "Move slow by one (to value 2) and fast by two (to value 0).",
-      "stateChange": {
-        "slow": 2,
-        "fast": 0
-      }
+      "elements": ["pointer_p", "pointer_q"],
+      "highlight": ["listA_node_0", "listB_node_0"],
+      "message": "Initialize two pointers, **P** and **Q**, to the heads of List A (1) and List B (2), respectively. We'll compare the values they point to.",
+      "condition": {
+        "expression": "listA_node_0 != null && listB_node_0 != null",
+        "result": true
+      },
+      "stateChange": {}
     },
     {
       "step": 3,
       "action": "compare",
-      "elements": [],
-      "highlight": [
-        { "structure": "list", "index": 1 },
-        { "structure": "list", "index": 2 }
-      ],
-      "message": "Check if slow == fast → (2 ≠ 0). No cycle yet.",
+      "elements": ["listA_node_0", "listB_node_0"],
+      "highlight": ["listA_node_0", "listB_node_0"],
+      "message": "Compare nodes pointed to by P (1) and Q (2). Since 1 < 2, the node from **List A** is smaller.",
       "condition": {
-        "expression": "slow == fast",
-        "result": false
+        "expression": "listA_node_0.val <= listB_node_0.val",
+        "result": true
       },
       "stateChange": {}
     },
     {
       "step": 4,
-      "action": "pointerMove",
-      "elements": [],
-      "highlight": [
-        { "structure": "list", "index": 2 },
-        { "structure": "list", "index": 0 }
-      ],
-      "message": "Move slow to next (0) and fast two steps ahead (back to 2 due to cycle).",
+      "action": "connect",
+      "elements": ["mergedList_node_0", "listA_node_0"],
+      "highlight": ["listA_node_0", "pointer_current"],
+      "message": "Attach the smaller node (1) to the **Current (Tail)** pointer's next. Update **Current** to point to the newly attached node (1).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
       "stateChange": {
-        "slow": 0,
-        "fast": 2
+        "pointer_current": "listA_node_0"
       }
     },
     {
       "step": 5,
-      "action": "compare",
-      "elements": [],
-      "highlight": [
-        { "structure": "list", "index": 2 },
-        { "structure": "list", "index": 1 }
-      ],
-      "message": "Compare slow (0) and fast (2). Still not equal — continue traversal.",
-      "condition": {
-        "expression": "slow == fast",
-        "result": false
-      },
-      "stateChange": {}
-    },
-    {
-      "step": 6,
       "action": "pointerMove",
-      "elements": [],
-      "highlight": [
-        { "structure": "list", "index": 3 },
-        { "structure": "list", "index": 0 }
-      ],
-      "message": "Move slow to next (−4) and fast two steps ahead (0).",
+      "elements": ["pointer_p"],
+      "highlight": ["listA_node_1"],
+      "message": "Advance pointer **P** to the next node in List A (3).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
       "stateChange": {
-        "slow": -4,
-        "fast": 0
+        "pointer_p": "listA_node_1"
       }
     },
     {
-      "step": 7,
+      "step": 6,
       "action": "compare",
-      "elements": [],
-      "highlight": [
-        { "structure": "list", "index": 3 },
-        { "structure": "list", "index": 2 }
-      ],
-      "message": "Compare slow (−4) and fast (0). Still not equal.",
+      "elements": ["listA_node_1", "listB_node_0"],
+      "highlight": ["listA_node_1", "listB_node_0"],
+      "message": "Compare P (3) and Q (2). Since 2 < 3, the node from **List B** is smaller.",
       "condition": {
-        "expression": "slow == fast",
-        "result": false
+        "expression": "listB_node_0.val < listA_node_1.val",
+        "result": true
       },
       "stateChange": {}
+    },
+    {
+      "step": 7,
+      "action": "connect",
+      "elements": ["listA_node_0", "listB_node_0"],
+      "highlight": ["listB_node_0", "pointer_current"],
+      "message": "Attach the smaller node (2) to **Current (Tail)**'s next. Update **Current** to point to node (2).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
+      "stateChange": {
+        "pointer_current": "listB_node_0"
+      }
     },
     {
       "step": 8,
       "action": "pointerMove",
-      "elements": [],
-      "highlight": [
-        { "structure": "list", "index": 1 },
-        { "structure": "list", "index": 2 }
-      ],
-      "message": "Move slow to next (2). Move fast two steps ahead → lands at same node (2).",
+      "elements": ["pointer_q"],
+      "highlight": ["listB_node_1"],
+      "message": "Advance pointer **Q** to the next node in List B (4).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
       "stateChange": {
-        "slow": 2,
-        "fast": 2
+        "pointer_q": "listB_node_1"
       }
     },
     {
       "step": 9,
       "action": "compare",
-      "elements": [],
-      "highlight": [{ "structure": "list", "index": 1 }],
-      "message": "slow == fast → both point to node (2). Cycle detected!",
+      "elements": ["listA_node_1", "listB_node_1"],
+      "highlight": ["listA_node_1", "listB_node_1"],
+      "message": "Compare P (3) and Q (4). Since 3 < 4, the node from **List A** is smaller.",
       "condition": {
-        "expression": "slow == fast",
+        "expression": "listA_node_1.val <= listB_node_1.val",
         "result": true
       },
-      "stateChange": {
-        "cycleFound": true
-      }
+      "stateChange": {}
     },
     {
       "step": 10,
-      "action": "mark",
-      "elements": [],
-      "highlight": [{ "structure": "list", "index": 1 }],
-      "message": "✅ Cycle found at node with value 2.",
+      "action": "connect",
+      "elements": ["listB_node_0", "listA_node_1"],
+      "highlight": ["listA_node_1", "pointer_current"],
+      "message": "Attach the smaller node (3) to **Current (Tail)**'s next. Update **Current** to point to node (3).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
       "stateChange": {
-        "cycleFound": true
+        "pointer_current": "listA_node_1"
       }
+    },
+    {
+      "step": 11,
+      "action": "pointerMove",
+      "elements": ["pointer_p"],
+      "highlight": ["listA_node_2"],
+      "message": "Advance pointer **P** to the next node in List A (5).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
+      "stateChange": {
+        "pointer_p": "listA_node_2"
+      }
+    },
+    {
+      "step": 12,
+      "action": "compare",
+      "elements": ["listA_node_2", "listB_node_1"],
+      "highlight": ["listA_node_2", "listB_node_1"],
+      "message": "Compare P (5) and Q (4). Since 4 < 5, the node from **List B** is smaller.",
+      "condition": {
+        "expression": "listB_node_1.val < listA_node_2.val",
+        "result": true
+      },
+      "stateChange": {}
+    },
+    {
+      "step": 13,
+      "action": "connect",
+      "elements": ["listA_node_1", "listB_node_1"],
+      "highlight": ["listB_node_1", "pointer_current"],
+      "message": "Attach the smaller node (4) to **Current (Tail)**'s next. Update **Current** to point to node (4).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
+      "stateChange": {
+        "pointer_current": "listB_node_1"
+      }
+    },
+    {
+      "step": 14,
+      "action": "pointerMove",
+      "elements": ["pointer_q"],
+      "highlight": ["listB_node_2"],
+      "message": "Advance pointer **Q** to the next node in List B (6).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
+      "stateChange": {
+        "pointer_q": "listB_node_2"
+      }
+    },
+    {
+      "step": 15,
+      "action": "compare",
+      "elements": ["listA_node_2", "listB_node_2"],
+      "highlight": ["listA_node_2", "listB_node_2"],
+      "message": "Compare P (5) and Q (6). Since 5 < 6, the node from **List A** is smaller.",
+      "condition": {
+        "expression": "listA_node_2.val <= listB_node_2.val",
+        "result": true
+      },
+      "stateChange": {}
+    },
+    {
+      "step": 16,
+      "action": "connect",
+      "elements": ["listB_node_1", "listA_node_2"],
+      "highlight": ["listA_node_2", "pointer_current"],
+      "message": "Attach the smaller node (5) to **Current (Tail)**'s next. Update **Current** to point to node (5).",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
+      "stateChange": {
+        "pointer_current": "listA_node_2"
+      }
+    },
+    {
+      "step": 17,
+      "action": "pointerMove",
+      "elements": ["pointer_p"],
+      "highlight": [],
+      "message": "Advance pointer **P**. **P** is now null, meaning List A is exhausted.",
+      "condition": {
+        "expression": "",
+        "result": false
+      },
+      "stateChange": {
+        "pointer_p": null
+      }
+    },
+    {
+      "step": 18,
+      "action": "connect",
+      "elements": ["listA_node_2", "listB_node_2"],
+      "highlight": ["listB_node_2", "pointer_current"],
+      "message": "Since List A is exhausted, attach the remainder of List B (node 6) to **Current (Tail)**'s next.",
+      "condition": {
+        "expression": "pointer_p == null && pointer_q != null",
+        "result": true
+      },
+      "stateChange": {}
+    },
+    {
+      "step": 19,
+      "action": "mark",
+      "elements": ["mergedList_node_0"],
+      "highlight": ["mergedList_node_0", "listB_node_2"],
+      "message": "All nodes merged. The final merged list is the **next** node after the dummy head.",
+      "condition": {
+        "expression": "",
+        "result": true
+      },
+      "stateChange": {}
     }
   ],
-
-  "endMessage": "🎯 Cycle detected using Floyd’s algorithm (slow and fast pointers meet).",
-
-  "actionReference": {
-    "visit": "Highlight current node being processed.",
-    "compare": "Compare positions of slow and fast pointers.",
-    "pointerMove": "Advance slow by one step and fast by two steps.",
-    "mark": "Mark the meeting point when both pointers meet (cycle found).",
-    "update": "Update pointer positions and states after each move."
-  }
+  "endMessage": "The merged sorted linked list is created by iteratively comparing the heads of the two lists and connecting the smaller node to the tail of the new list. The dummy head node is then discarded to get the final result: 1 -> 2 -> 3 -> 4 -> 5 -> 6."
 }

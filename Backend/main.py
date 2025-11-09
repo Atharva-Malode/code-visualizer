@@ -15,7 +15,7 @@ app = FastAPI(
     description="Converts DSA questions or code into universal visualization JSON.",
     version="1.0.0",
     contact={
-        "name": "Atharva DSA Visualizer",
+        "name": "YCCE DSA Visualizer",
         "url": "https://github.com/your-repo",
         "email": "your.email@example.com",
     },
