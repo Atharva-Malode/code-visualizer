@@ -25,6 +25,7 @@
     "react-fontawesome": "^1.7.1",
     "react-router-dom": "^6.15.0",
     "react-scroll": "^1.8.9",
+    "react-syntax-highlighter": "^16.1.0",
     "three": "^0.160.0"
   },
   "devDependencies": {

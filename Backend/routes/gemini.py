@@ -243,29 +243,31 @@ Return only the valid JSON (no markdown or text outside the JSON).
 
 def build_prompt_for_solution(prompt: str) -> str:
     """
-    Prompt for generating Python solution code.
+    Prompt for generating C++ solution code.
     """
     return f"""
-        You are a DSA expert. Write a complete, efficient Python 3 solution for this problem.
+You are a DSA expert. Write a complete, efficient C++ solution for this problem.
 
-        Problem: {prompt}
+Problem: {prompt}
 
-        Requirements:
-        - Use Python 3 syntax
-        - Include clear comments for each major step
-        - Handle edge cases (empty input, etc.)
-        - Use lists for arrays
-        - Return the expected output
-        - Optimal time and space complexity
-        - No external libraries beyond built-ins
+Requirements:
+- Use C++11 or later syntax
+- Include necessary headers (e.g., #include <bits/stdc++.h>, using namespace std;)
+- Use std::string for strings, std::vector<std::string> or similar for rows
+- Include clear comments for each major step
+- Handle edge cases (empty input, etc.)
+- Return the expected output
+- Optimal time and space complexity
+- No external libraries beyond standard library
 
-        Return ONLY the Python code. No explanations or markdown outside the code block.
-        ```python
-        def solution(input_data):
-            # Your code here
-            pass
-        ```
-    """
+Return ONLY the C++ code. No explanations or markdown outside the code block.
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+string solution(string s, int numRows)
+```
+"""
 
 
 def build_prompt_for_flowchart(prompt: str) -> str:
@@ -273,23 +275,23 @@ def build_prompt_for_flowchart(prompt: str) -> str:
     Prompt for generating Mermaid flowchart.
     """
     return f"""
-        You are a DSA expert. Generate a Mermaid flowchart for solving this problem.
+You are a DSA expert. Generate a Mermaid flowchart for solving this problem.
 
-        Problem: {prompt}
+Problem: {prompt}
 
-        Requirements:
-        - Use 'flowchart TD' direction (top-down)
-        - Nodes: Start, Input, Decisions (diamonds), Actions (rectangles), Output, End
-        - Show main steps: initialization, loops, conditions, updates, return
-        - Keep it concise (10-20 nodes max)
-        - Use clear labels
+Requirements:
+- Use 'flowchart TD' direction (top-down)
+- Nodes: Start, Input, Decisions (diamonds), Actions (rectangles), Output, End
+- Show main steps: initialization, loops, conditions, updates, return
+- Keep it concise (10-20 nodes max)
+- Use clear labels
 
-        Return ONLY the Mermaid code. No other text.
-        ```mermaid
-        flowchart TD
-            Start --> ...
-        ```
-    """
+Return ONLY the Mermaid code. No other text.
+```mermaid
+flowchart TD
+    Start --> ...
+```
+"""
 
 
 @router.post("/generate-visualization", response_model=ResponseModel)
@@ -358,7 +360,7 @@ async def generate_visualization(input_data: InputModel):
 @router.post("/generate-solution", response_model=ResponseModel)
 async def generate_solution(input_data: InputModel):
     """
-    Generates Python solution code for the DSA problem.
+    Generates C++ solution code for the DSA problem.
     """
     try:
         if not client:
