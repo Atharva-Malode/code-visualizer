@@ -1,6 +1,6 @@
 // src/pages/SolutionPage.jsx
 import { useLocation } from "react-router-dom"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import mermaid from "mermaid"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism"
@@ -15,12 +15,18 @@ export default function SolutionPage() {
     const [solutionCode, setSolutionCode] = useState("")
     const [mermaidCode, setMermaidCode] = useState("")
     const [loading, setLoading] = useState(true)
+    const mermaidRef = useRef(null)
 
-    // Helper function to remove markdown code delimiters
+    // Helper function to remove markdown code delimiters more robustly
     const cleanCodeDelimiters = (code) => {
         if (!code) return ""
-        // Remove triple backticks and optional language identifier
-        return code.replace(/^``````$/g, "").trim()
+        let cleaned = code
+        // Remove opening and closing code blocks
+        cleaned = cleaned.replace(/^```(?:cpp|python|\w+)?\s*\n?/i, '').trimStart()
+        cleaned = cleaned.replace(/\n?```\s*$/i, '').trimEnd()
+        // Remove any remaining empty lines at start/end
+        cleaned = cleaned.replace(/^\n+|\n+$/g, '')
+        return cleaned
     }
 
     useEffect(() => {
@@ -54,8 +60,9 @@ export default function SolutionPage() {
             console.log("📩 [fetchSolution] Response JSON:", responseData)
 
             if (response.ok && responseData.success) {
-                console.log("✅ [fetchSolution] Setting solution code:", responseData.data)
-                setSolutionCode(responseData.data)
+                const cleanedCode = cleanCodeDelimiters(responseData.data)
+                console.log("✅ [fetchSolution] Setting solution code (length after clean):", cleanedCode.length)
+                setSolutionCode(cleanedCode)
             } else {
                 console.error("❌ [fetchSolution] Failed:", responseData)
             }
@@ -79,8 +86,12 @@ export default function SolutionPage() {
             console.log("📩 [fetchFlowchart] Response JSON:", responseData)
 
             if (response.ok && responseData.success) {
-                console.log("✅ [fetchFlowchart] Setting Mermaid code:", responseData.data)
-                setMermaidCode(responseData.data)
+                // Clean Mermaid code if it has markdown delimiters
+                let cleanedMermaid = responseData.data
+                cleanedMermaid = cleanedMermaid.replace(/^```(?:mermaid)?\s*\n?/i, '').trimStart()
+                cleanedMermaid = cleanedMermaid.replace(/\n?```\s*$/i, '').trimEnd()
+                console.log("✅ [fetchFlowchart] Setting Mermaid code (length):", cleanedMermaid.length)
+                setMermaidCode(cleanedMermaid)
             } else {
                 console.error("❌ [fetchFlowchart] Failed:", responseData)
             }
@@ -90,44 +101,49 @@ export default function SolutionPage() {
     }
 
     useEffect(() => {
-        function renderMermaid() {
+        async function renderMermaid() {
             console.log("🌀 [Mermaid] Attempting to render flowchart...")
-            if (mermaidCode) {
+            if (mermaidCode && mermaidRef.current) {
                 try {
-                    console.log("🧩 [Mermaid] Code:", mermaidCode.slice(0, 100), "...")
-                    // Synchronous initialization
+                    console.log("🧩 [Mermaid] Code preview:", mermaidCode.slice(0, 100), "...")
+                    
+                    // Configure Mermaid globally
                     mermaid.initialize({
                         startOnLoad: false,
                         theme: "dark",
                         themeVariables: {
-                        primary: "#0f0f23",
-                        primaryText: "#ffffff",
-                        secondary: "#1e1e2e",
-                        tertiary: "#313244",
-                        lineColor: "#45475a",
+                            primary: "#0f0f23",
+                            primaryText: "#ffffff",
+                            secondary: "#1e1e2e",
+                            tertiary: "#313244",
+                            lineColor: "#45475a",
+                            primaryBorderColor: "#45475a",
+                            primaryBackground: "#0f0f23",
                         },
                     })
 
-                    const nodes = document.querySelectorAll(".mermaid")
-                    console.log("🧱 [Mermaid] Found", nodes.length, "nodes")
-
-                    if (nodes.length > 0) {
-                        // Synchronous run
-                        mermaid.run({ nodes })
-                        console.log("✅ [Mermaid] Render complete!")
-                    } else {
-                        console.warn("⚠️ [Mermaid] No nodes found for rendering.")
-                    }
+                    // Use mermaid.render to generate SVG directly (avoids parsing issues)
+                    const { svg } = await mermaid.render('mermaid-graph', mermaidCode)
+                    
+                    // Set the SVG directly into the ref
+                    mermaidRef.current.innerHTML = svg
+                    console.log("✅ [Mermaid] SVG rendered successfully!")
                 } catch (err) {
                     console.error("🔥 [Mermaid] Render error:", err)
+                    // Fallback: show raw code if rendering fails
+                    if (mermaidRef.current) {
+                        mermaidRef.current.innerHTML = `<pre class="text-xs text-gray-400 p-4 overflow-auto">${mermaidCode}</pre>`
+                    }
                 }
             } else {
-                console.log("ℹ️ [Mermaid] No code yet, skipping render.")
+                console.log("ℹ️ [Mermaid] No code or ref yet, skipping render.")
             }
         }
 
-        const timer = setTimeout(renderMermaid, 200)
-        return () => clearTimeout(timer)
+        if (mermaidCode) {
+            const timer = setTimeout(renderMermaid, 100)
+            return () => clearTimeout(timer)
+        }
     }, [mermaidCode])
 
     // Debug re-renders
@@ -312,7 +328,7 @@ export default function SolutionPage() {
                 `}</style>
                 {mermaidCode ? (
                 <div className="flowchart-container h-full overflow-auto flex items-center justify-center p-4">
-                    <div className="mermaid">{mermaidCode}</div>
+                    <div ref={mermaidRef} className="mermaid w-full h-full min-h-[400px]"></div>
                 </div>
                 ) : (
                 <div className="text-gray-500 text-center flex items-center justify-center h-full">
