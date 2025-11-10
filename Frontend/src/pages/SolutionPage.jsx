@@ -7,6 +7,61 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism"
 
 const API_BASE_URL = "http://localhost:8000/api"
 
+function V0Loader() {
+    return (
+        <div className="w-full h-full flex items-center justify-center p-8">
+            <style>{`
+                @keyframes shimmer {
+                    0% {
+                        background-position: -1000px 0;
+                    }
+                    100% {
+                        background-position: 1000px 0;
+                    }
+                }
+                
+                .shimmer-line {
+                    height: 0.875rem;
+                    border-radius: 0.375rem;
+                    background: linear-gradient(
+                        90deg,
+                        #374151 25%,
+                        #4B5563 50%,
+                        #374151 75%
+                    );
+                    background-size: 1000px 100%;
+                    animation: shimmer 2s infinite;
+                    margin-bottom: 0.75rem;
+                }
+                
+                .shimmer-line:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .shimmer-line.short {
+                    width: 75%;
+                }
+                
+                .shimmer-line.medium {
+                    width: 85%;
+                }
+            `}</style>
+
+            <div className="w-full max-w-md space-y-3">
+                <div className="shimmer-line" style={{ animation: "shimmer 2s infinite" }}></div>
+                <div className="shimmer-line medium" style={{ animation: "shimmer 2.2s infinite" }}></div>
+                <div className="shimmer-line" style={{ animation: "shimmer 2.4s infinite" }}></div>
+                <div className="shimmer-line short" style={{ animation: "shimmer 2.1s infinite" }}></div>
+                <div className="mt-6 space-y-3">
+                <div className="shimmer-line" style={{ animation: "shimmer 2.3s infinite" }}></div>
+                <div className="shimmer-line medium" style={{ animation: "shimmer 2.5s infinite" }}></div>
+                <div className="shimmer-line short" style={{ animation: "shimmer 2s infinite" }}></div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export default function SolutionPage() {
     const location = useLocation()
     const data = location.state?.data
@@ -315,9 +370,7 @@ export default function SolutionPage() {
                             }
                         `}</style>
                         {loadingSolution ? (
-                            <div className="text-gray-500 text-center py-12 flex items-center justify-center h-full">
-                                <div className="animate-pulse">⏳ Generating code...</div>
-                            </div>
+                            <V0Loader/>
                         ) : solutionCode ? (
                             <div className="code-container">
                                 <SyntaxHighlighter
@@ -374,9 +427,7 @@ export default function SolutionPage() {
                             }
                         `}</style>
                         {loadingFlowchart ? (
-                            <div className="text-gray-500 text-center flex items-center justify-center h-full">
-                                <div className="animate-pulse">⏳ Generating flowchart...</div>
-                            </div>
+                            <V0Loader />
                         ) : mermaidCode ? (
                             <div className="flowchart-container h-full overflow-auto flex items-center justify-center p-4">
                                 <div ref={mermaidRef} className="mermaid w-full h-full min-h-[400px]"></div>
