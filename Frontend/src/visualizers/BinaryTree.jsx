@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 /**
  * BinaryTreeVisualizer (Production-Ready - Fixed Edge Positioning)
@@ -11,8 +12,9 @@ import { motion, AnimatePresence } from "framer-motion";
  * - Cyan theme (consistent with HomePage)
  * - Scrollable content with fixed controls
  * - Handles ALL binary tree DSA problems
+ * - Added: Solution button navigation
  */
-export default function BinaryTreeVisualizer({ jsonData }) {
+export default function BinaryTreeVisualizer({ jsonData, originalPrompt }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [structures, setStructures] = useState({});
   const [pointers, setPointers] = useState({});
@@ -27,6 +29,7 @@ export default function BinaryTreeVisualizer({ jsonData }) {
   const allStructures = jsonData?.visualLayout?.structures || [];
   const contentRef = useRef(null);
   const timerRef = useRef(null);
+  const navigate = useNavigate();
 
   // Normalize highlight format (string or object)
   const normalizeHighlight = (highlight = []) => {
@@ -260,6 +263,17 @@ export default function BinaryTreeVisualizer({ jsonData }) {
     if (timerRef.current) clearTimeout(timerRef.current);
     setTimeout(() => setPlaying(true), 100);
   };
+
+  const handleSolution = () => {
+    navigate("/solution", {
+      state: {
+        data: jsonData,
+        originalPrompt: originalPrompt,
+      },
+    });
+  };
+
+  const showSolutionButton = !playing;
 
   // Filter structures
   const trees = Object.entries(structures)
@@ -629,6 +643,17 @@ export default function BinaryTreeVisualizer({ jsonData }) {
                 🔄 Reset
               </motion.button>
             </div>
+
+            {showSolutionButton && (
+              <motion.button
+                onClick={handleSolution}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full bg-purple-500 hover:bg-purple-400 text-white font-bold py-2 rounded-lg transition-all duration-300 mb-3"
+              >
+                📚 View Solution
+              </motion.button>
+            )}
 
             <motion.div
               className="text-sm text-cyan-400 font-semibold text-center bg-cyan-900/30 px-3 py-2 rounded-lg border border-cyan-700/50"

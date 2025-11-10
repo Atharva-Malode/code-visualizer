@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 /**
  * QueueVisualizer (Universal + Production-Ready)
@@ -12,8 +13,9 @@ import { motion, AnimatePresence } from "framer-motion";
  * - Cyan color theme matching HomePage
  * - Smooth spring animations throughout
  * - Scrollable content with fixed controls
+ * - Added: Solution button navigation
  */
-export default function QueueVisualizer({ jsonData }) {
+export default function QueueVisualizer({ jsonData, originalPrompt }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [structures, setStructures] = useState({});
   const [pointers, setPointers] = useState({});
@@ -28,6 +30,7 @@ export default function QueueVisualizer({ jsonData }) {
   const allStructures = jsonData?.visualLayout?.structures || [];
   const contentRef = useRef(null);
   const timerRef = useRef(null);
+  const navigate = useNavigate();
 
   // Normalize highlight format (string or object)
   const normalizeHighlight = (highlight = []) => {
@@ -274,6 +277,15 @@ export default function QueueVisualizer({ jsonData }) {
     setTimeout(() => setPlaying(true), 100);
   };
 
+  const handleSolution = () => {
+    navigate("/solution", {
+      state: {
+        data: jsonData,
+        originalPrompt: originalPrompt,
+      },
+    });
+  };
+
   // Filter structures by type
   const queues = Object.entries(structures)
     .filter(([_, s]) => (s.type || "").toLowerCase() === "queue")
@@ -306,6 +318,8 @@ export default function QueueVisualizer({ jsonData }) {
   const currentHighlight = normalizeHighlight(current.highlight || []);
 
   const isHighlighted = (structId, idx) => currentHighlight.includes(`${structId}:${idx}`);
+
+  const showSolutionButton = !playing;
 
   return (
     <div className="w-full h-screen bg-gray-950 text-gray-100 flex flex-col fixed inset-0 overflow-hidden">
@@ -695,6 +709,17 @@ export default function QueueVisualizer({ jsonData }) {
                 🔄 Reset
               </motion.button>
             </div>
+
+            {showSolutionButton && (
+              <motion.button
+                onClick={handleSolution}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full bg-purple-500 hover:bg-purple-400 text-white font-bold py-2 rounded-lg transition-all duration-300"
+              >
+                📚 View Solution
+              </motion.button>
+            )}
 
             <motion.div
               className="text-sm text-cyan-400 font-semibold text-center bg-cyan-900/30 px-3 py-2 rounded-lg border border-cyan-700/50"

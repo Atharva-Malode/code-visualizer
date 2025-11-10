@@ -260,7 +260,7 @@ Requirements:
 - Optimal time and space complexity
 - No external libraries beyond standard library
 
-Return ONLY the C++ code. No explanations or markdown outside the code block.
+Return ONLY the C++ code. No explanations or markdown outside the code block. Take a reference from this template:
 ```cpp
 #include <bits/stdc++.h>
 using namespace std;

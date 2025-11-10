@@ -24,17 +24,17 @@ export default function VisualizerSelector({ jsonData, originalPrompt }) {
 
   switch (pattern) {
     case "linkedlist":
-      return <LinkedListVisualizer jsonData={normalizedData} />;
+      return <LinkedListVisualizer jsonData={normalizedData} originalPrompt={originalPrompt} />;
     case "stack":
-      return <StackVisualizer jsonData={normalizedData} />;
+      return <StackVisualizer jsonData={normalizedData} originalPrompt={originalPrompt} />;
     case "queue":
-      return <QueueVisualizer jsonData={normalizedData} />;
+      return <QueueVisualizer jsonData={normalizedData} originalPrompt={originalPrompt} />;
     case "binarytree":
-      return <BinaryTreeVisualizer jsonData={normalizedData} />;
+      return <BinaryTreeVisualizer jsonData={normalizedData} originalPrompt={originalPrompt} />;
     case "matrix":
-      return <MatrixVisualizer jsonData={normalizedData} />;
+      return <MatrixVisualizer jsonData={normalizedData} originalPrompt={originalPrompt} />;
     case "graph":
-      return <GraphVisualizer jsonData={normalizedData} />;
+      return <GraphVisualizer jsonData={normalizedData} originalPrompt={originalPrompt} />;
     case "array":
     default:
       const store = makeStore(normalizedData, originalPrompt);
