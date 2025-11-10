@@ -272,7 +272,7 @@ string solution(string s, int numRows)
 
 def build_prompt_for_flowchart(prompt: str) -> str:
     """
-    Prompt for generating Mermaid flowchart.
+    Prompt for generating Mermaid flowchart with strict syntax rules.
     """
     return f"""
 You are a DSA expert. Generate a Mermaid flowchart for solving this problem.
@@ -284,13 +284,44 @@ Requirements:
 - Nodes: Start, Input, Decisions (diamonds), Actions (rectangles), Output, End
 - Show main steps: initialization, loops, conditions, updates, return
 - Keep it concise (10-20 nodes max)
-- Use clear labels
+- Use clear, descriptive labels
 
-Return ONLY the Mermaid code. No other text.
-```mermaid
-flowchart TD
-    Start --> ...
+**CRITICAL SYNTAX RULES (MUST FOLLOW):**
+1. **NO square brackets [ ] inside node labels** - Replace array access like arr[i] with arr(i) or "arr at i"
+2. **NO special characters in labels** - Replace:
+   - ( ) with space or remove
+   - +, -, *, / with words: plus, minus, times, div
+   - Example: "operator (+,-,*,/)" → "operator plus minus times div"
+3. **NO semicolons after decision nodes** - Use only {{ }} for diamonds, not {{}}; 
+4. **Keep labels simple** - Use plain English, avoid code syntax
+5. **Escape quotes** - Use single quotes inside labels or avoid them
+
+**GOOD Examples:**
 ```
+A --> B[Set left to 0]
+B --> C{{Is left less than right}}
+C -- Yes --> D[Swap arr at left with arr at right]
+D --> E[Increment left by 1]
+C -- No --> F[Return result]
+```
+
+**BAD Examples (DO NOT USE):**
+```
+A --> B[Set left = 0] ❌ (avoid = in labels)
+B --> C{{Is operator (+,-,*,/)?}} ❌ (special chars)
+C --> D[Swap arr[left] with arr[right]] ❌ (square brackets)
+```
+
+Return ONLY valid Mermaid code. No markdown code blocks, no explanations.
+
+Format:
+flowchart TD
+    Start --> A[First step]
+    A --> B{{Decision question}}
+    B -- Yes --> C[Action if yes]
+    B -- No --> D[Action if no]
+    C --> End
+    D --> End
 """
 
 
