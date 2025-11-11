@@ -194,14 +194,26 @@ function runStep(store, step, instant = false) {
   }
 
   // Update variables from stateChange
-  if (step.stateChange) {
-    Object.entries(step.stateChange).forEach(([varId, newValue]) => {
-      const struct = store.getStruct(varId);
-      if (struct && struct.type === "variable") {
-        store.setStruct(varId, (v) => ({ ...v, value: newValue }));
-      }
-    });
-  }
+if (step.stateChange) {
+  Object.entries(step.stateChange).forEach(([structId, changes]) => {
+    const struct = store.getStruct(structId);
+    if (!struct) return;
+
+    if (struct.type === "variable") {
+      // For variables, the entire value is the new state
+      store.setStruct(structId, (v) => ({ ...v, value: changes }));
+    } else if (struct.type === "array" && changes.data) {
+      // For arrays, map the new data to the expected item format
+      store.setStruct(structId, (arr) => ({
+        ...arr,
+        data: changes.data.map((val, i) => ({
+          id: `${structId}-${i}-${cryptoRandom()}`,
+          value: val,
+        })),
+      }));
+    }
+  });
+}
 
   const a = step.action;
   let duration = 350;
